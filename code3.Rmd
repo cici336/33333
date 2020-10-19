@@ -1,0 +1,367 @@
+---
+title: "Untitled"
+output: ''
+---
+
+library(tidyverse)
+library(haven)
+library(DAAG)
+library(lattice)
+library(janitor)
+library(magrittr)
+library(car)
+
+
+```{r}
+#Import the dataset
+
+# We use the dataset:
+# General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.
+
+sample_raw <- read_csv('AA0EzcFV.csv')
+```
+
+
+
+
+```{r}
+#Plot raw data for each variable：
+
+#age
+agplot <- ggplot(sample_raw,  aes(x=agegr10)) +
+  geom_bar(position=position_dodge(0.4),width=0.3,fill ="light blue") + theme_bw() +  
+  labs(x = "Age group",
+       y = "Number",
+       title = "Figure1: Age group of respondent (groups of 10) ",
+       caption = "Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") 
+agplot
+
+#sex
+sex <- ggplot(sample_raw,  aes(x=sex)) +
+  geom_bar(position=position_dodge(0.4),width=0.3,fill ="light blue") + theme_bw() +  
+  labs(x = "Sex",
+       y = "Number",
+       title = "Figure2: Sex of respondent",  caption = "Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") 
+sex
+
+sexx <- ggplot(sample_raw)+geom_bar(aes(x=factor(1),fill= factor(sex)))+coord_polar(theta="y")+   
+  labs(x = "Sex",
+       y = "Number",
+       title = "Figure2: Responses to 'What is your first language?' ", caption = "Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") 
+sexx
+table(sample_raw$agegr10)
+
+
+
+#workplace size:
+workplace_plot <- ggplot(sample_raw,  aes(x=worksize)) +
+  geom_bar(position=position_dodge(0.4),width=0.3,fill ="light blue") + theme_bw() +  
+  labs(x = "Workplace sizes",
+       y = "Number",
+       title = "Figure3: Responsdents' workplace size", caption = "Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") 
+workplace_plot
+
+#work load manageable
+workload_plot <- ggplot(sample_raw,  aes(x=wir_01)) +
+  geom_bar(position=position_dodge(0.4),width=0.3,fill ="light blue") + theme_bw() +  
+  labs(x = "Management of workload",
+       y = "Number",
+       title = "Figure4: Response to 'How often do you consider your workload manageable?'"
+       ,  caption = "Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") 
+workload_plot
+
+#fairwork:
+fairwork_plot <- ggplot(sample_raw,  aes(x=wdr_09)) +
+  geom_bar(position=position_dodge(0.4),width=0.3,fill ="light blue") + theme_bw() +  
+  labs(x = "Level of stress in life",
+       y = "Number",
+       title = "Figure5: Response to 'Is work distributed fairly in your workplace?'"
+       ,  caption = "Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.")
+fairwork_plot
+
+#stress level:
+stress_plot <- ggplot(sample_raw,  aes(x=smg_01)) +
+  geom_bar(position=position_dodge(0.4),width=0.3,fill ="light blue") + theme_bw() +  
+  labs(x = "Response",
+       y = "Number",
+       title = "Figure6: Response to the amount of stress in your life "
+       , caption = "Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") 
+stress_plot
+
+
+#income:
+income_plot <- ggplot(sample_raw,  aes(x=ttlincg2)) +
+  geom_bar(position=position_dodge(0.4),width=0.3,fill ="light blue") + theme_bw() +  
+  labs(x = "Income - Personal income group (before tax)",
+       y = "Number",
+       title = "Figure7: Response to personal income group (before tax) "
+       , caption = "Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") 
+income_plot
+
+incomexx <- ggplot(sample_raw)+geom_bar(aes(x=factor(1),fill= factor(ttlincg2)))+coord_polar(theta="y")+   
+  labs(x = "ttlincg2",
+       y = "Number",
+       title = "Figure7: Response to personal income group (before tax) ", caption = "Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") 
+incomexx
+
+#qualified for job
+fairwork_plot <- ggplot(sample_raw,  aes(x=stj_08)) +
+  geom_bar(position=position_dodge(0.4),width=0.3,fill ="light blue") + theme_bw() +  
+  labs(x = "Under/Over-qualification for current job",
+       y = "Number",
+       title = "Figure8: Response to the degree of qualification for the job "
+       , caption = "Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") 
+fairwork_plot
+
+#sense of belonging
+belonging_plot <- ggplot(sample_raw,  aes(x=jsr_07)) +
+  geom_bar(position=position_dodge(0.4),width=0.3,fill ="light blue") + theme_bw() +  
+  labs(x = "Sense of belonging to the organization",
+       y = "Number",
+       title = "Figure9: Response to the degree of belonging to the organization"
+       , caption = "Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") 
+belonging_plot
+
+
+#leaving job plot:
+leaving_job_plot <- ggplot(sample_raw,  aes(x=jsr_04)) +
+  geom_bar(position=position_dodge(0.4),width=0.3,fill ="light blue") + theme_bw() +  
+  labs(x = "Planning to leave current job",
+       y = "Number",
+       title = "Figure10: Response to 'Are you planning on leaving your current job?'"
+       , caption = "Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") 
+leaving_job_plot
+
+```
+
+
+
+
+```{r}
+#Deal with the data:
+sample0 <- read_csv('AA0EzcFV.csv')
+
+#rename variables we are interested in:
+sample0 <- sample0 %>% 
+  clean_names() %>% 
+  rename(workload_manageable = wir_01,
+         income = ttlincg2,
+         fair_work = wdr_09,
+         full_or_part_time=lpw_02)
+
+
+sample0 <- sample0 %>% 
+  clean_names() %>% 
+  rename(leaving_job = jsr_04)
+  
+      
+sample0 <- sample0 %>% 
+  clean_names() %>% 
+  rename(number_paid_hours=wti120gr)
+      
+sample0 <- sample0 %>% 
+  clean_names() %>% 
+  rename(belong_in_the_organization=jsr_07)  
+            
+sample0 <- sample0 %>% 
+  clean_names() %>% 
+  rename(age = agegr10, #add
+         marriage_status = marstat, #add       
+    compension = cab_01f, #add
+     stress_level = smg_01, #add
+       )
+sample0 <- sample0 %>% 
+  clean_names() %>% 
+  rename(workplace_size=worksize,
+  qualified_for_job = stj_08
+  )  
+
+
+#for analysis, we treat "valid skip","don't know',"refusal" and "not stated" as missing values and ignore them.
+
+
+sample0 <- sample0 %>% 
+  mutate_at(vars(leaving_job), 
+           .funs = funs(ifelse(.=="6"|.=="7"|.=="8"|.=="9", "NA", .)))
+sample0$leaving_job[sample0$leaving_job == "NA"] <- NA
+sample0 <- sample0[complete.cases(sample0),]
+
+
+sample0 <- sample0 %>% 
+  mutate_at(vars(fair_work), 
+           .funs = funs(ifelse(.=="6"|.=="7"|.=="8"|.=="9", "NA", .)))
+sample0$fair_work[sample0$fair_work == "NA"] <- NA
+
+
+sample0 <- sample0 %>% 
+  mutate_at(vars(workload_manageable), 
+           .funs = funs(ifelse(.=="6"|.=="7"|.=="8"|.=="9", "NA", .)))
+sample0$workload_manageable[sample0$workload_manageable == "NA"] <- NA
+sample0 <- sample0[complete.cases(sample0),]
+
+
+sample0 <- sample0 %>% 
+  mutate_at(vars(income), 
+           .funs = funs(ifelse(.=="6"|.=="7"|.=="8"|.=="9", "NA", .)))
+sample0$income[sample0$income == "NA"] <- NA
+sample0 <- sample0[complete.cases(sample0),]
+
+sample0 <- sample0 %>% 
+  mutate_at(vars(age), 
+           .funs = funs(ifelse(.=="6"|.=="7"|.=="8"|.=="9", "NA", .)))
+sample0$age[sample0$age == "NA"] <- NA
+
+
+sample0 <- sample0 %>% 
+  mutate_at(vars(sex), 
+           .funs = funs(ifelse(.=="6"|.=="7"|.=="8"|.=="9", "NA", .)))
+sample0$sex[sample0$sex == "NA"] <- NA
+sample0 <- sample0[complete.cases(sample0),]
+
+
+sample0 <- sample0 %>% 
+  mutate_at(vars(workplace_size), 
+           .funs = funs(ifelse(.=="6"|.=="7"|.=="8"|.=="9", "NA", .)))
+sample0$workplace_size[sample0$workplace_size == "NA"] <- NA
+sample0 <- sample0[complete.cases(sample0),]
+
+
+
+
+sample0 <- sample0 %>% 
+  mutate_at(vars(qualified_for_job), 
+           .funs = funs(ifelse(.=="6"|.=="7"|.=="8"|.=="9", "NA", .)))
+sample0$qualified_for_job[sample0$qualified_for_job == "NA"] <- NA
+sample0 <- sample0[complete.cases(sample0),]
+
+
+
+sample0 <- sample0 %>% 
+  mutate_at(vars(leaving_job), 
+           .funs = funs(ifelse(.=="6"|.=="7"|.=="8"|.=="9", "NA", .)))
+sample0$leaving_job[sample0$leaving_job == "NA"] <- NA
+sample0 <- sample0[complete.cases(sample0),]
+table(sample0$leaving_job)
+
+```
+
+
+
+
+```{r}
+#built the logistic model:
+model1<- glm(factor(leaving_job)~factor(income) + factor(fair_work) + factor(workload_manageable), data=sample0,family="binomial")
+summary(model1)
+
+```
+
+
+```{r}
+#check multi collinearity of predictors by observing their VIF values:
+vif(model1)
+
+#model influence:
+
+plot(model1,1)
+plot(model1,3)
+plot(model1,5)
+plot(model1,4)
+
+
+# obtain confidence intervals for the coefficient estimates
+confint(model1)
+```
+
+```{r}
+# prediction ability
+fitted.results <- predict(model1,newdata=sample0,type='response')
+
+fitted.results <- ifelse(fitted.results > 0.5,1,2)
+
+misClasificError <- mean(fitted.results != sample0$leaving_job)
+
+print(paste('Accuracy:',1-misClasificError))
+```
+
+
+
+
+```{r}
+#results
+
+# Responses to 'Whether planning on leaving current job' grouped by income
+
+
+load_leave <- ggplot(sample0)+geom_bar(aes(x=leaving_job, fill=workload_manageable))+coord_flip() + labs(x = "planning on leaving current job: 1(Yes) 2(No)",
+       y = "Number",
+       title = "Responses to 'Whether planning on leaving current job' grouped by the workload", caption = "Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") 
+load_leave
+
+
+fair_leave <- ggplot(sample0)+geom_bar(aes(x=leaving_job, fill=fair_work))+coord_flip() + labs(x = "planning on leaving current job: 1(Yes) 2(No)",
+       y = "Number",
+       title = "Planning on whether leaving current job grouped by the response of 'Is work distributed fairly?' ", caption = "Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") 
+fair_leave
+
+```
+
+
+```{r}
+#Discussion:
+#Dataset
+
+#variable: fair_work
+
+data.frame(table(sample0$fair_work))
+label_value <- c("Strongly Yes: (1290)", "Yes: (3682)", "Neither yes nor no: (1290)", "No: (1025)", "Strongly no: (219)")
+
+fd <- ggplot(sample0)+geom_bar(aes(x=factor(1),fill=fair_work))+coord_polar(theta="y")+labs(x = "count",
+       title = "Responses to 'Is work distributed fairly in your workplace?' ", caption ="Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") + scale_fill_discrete(labels = label_value)
+fd
+
+
+#income
+
+income_p <- ggplot(sample0,  aes(x=income)) +
+  geom_bar(position=position_dodge(0.4),width=0.3,fill ="light blue") + theme_bw() +  
+  labs(x = "Income - Personal income group (before tax)",
+       y = "Number",
+       title = "Response to personal income group (before tax) "
+       , caption = "Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") 
+income_p
+
+#workload manageable
+
+wl <- ggplot(sample0,  aes(x=workload_manageable)) +
+  geom_bar(position=position_dodge(0.4),width=0.3,fill ="light blue") + theme_bw() +  
+  labs(x = "Management of workload",
+       y = "Number",
+       title = "Response to How often do you consider your workload manageable? "
+       , caption = "Source: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") 
+wl
+
+# leaving job
+data.frame(table(sample0$leaving_job))
+label_value <- c("Yes: 15.45%", "No: 84.54%")
+
+fd <- ggplot(sample0)+geom_bar(aes(x=factor(1),fill=leaving_job))+coord_polar(theta="y")+labs(x = "count",
+       title = "Responses to 'Are you planning on leaving your current job?' ", caption = "Spurce: General Social Survey (GSS), Cycle 30, 2016 : Canadians at Work and Home.") + scale_fill_discrete(labels = label_value)
+fd
+```
+
+
+
+```{r}
+#citation
+citation('car')
+citation('tidyverse')
+citation('haven')
+citation('DAAG')
+citation('janitor')
+citation('magrittr')
+citation('rmarkdown')
+citation()
+```
+
+
+
